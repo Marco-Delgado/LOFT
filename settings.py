@@ -31,6 +31,10 @@ def create_config(args):
         painting_test_num_objs = [6, 7, 8, 9, 10]
         painting_num_test_problems = 30
 
+        robosuite_demo_num_objs = [3, 4, 5]
+        robosuite_test_num_objs = [6]
+        robosuite_num_test_problems = 10
+
         backtracking_num_samples_per_step = 10
         effect_prob_threshold = 0.001
         num_demos = 20
@@ -38,16 +42,19 @@ def create_config(args):
             "cover": 100,
             "painting": 2500,
             "blocks": 100,
+            "robosuite": 100,
         }[args.env]
         max_test_episode_length = {
             "cover": 5,
             "painting": 50,
             "blocks": 50,
+            "robosuite": 50,
         }[args.env]
         approach_timeout = {
             "cover": 1,
             "painting": 10,
             "blocks": 10,
+            "robosuite": 10,
         }[args.env]
 
         builp_max_unique_lifted_effects = 10
