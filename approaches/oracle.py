@@ -11,6 +11,7 @@ from approaches import BaseApproach
 class Oracle(BaseApproach):
     """Oracle implementation.
     """
+
     def _get_operators(self, data):
         del data  # unused
         return get_gt_ops(self._cf, self._state_preds, self._action_preds)
@@ -25,6 +26,8 @@ def get_gt_ops(config, state_predicates, action_predicates):
         cls = CoverOperators(state_predicates, action_predicates)
     elif config.env == "blocks":
         cls = BlocksOperators(state_predicates, action_predicates)
+    elif config.env == "robosuite":
+        cls = RobosuiteOperators(state_predicates, action_predicates)
     else:
         raise Exception(f"Unrecognized env: {config.env}")
     return cls.get_operators()
@@ -33,6 +36,7 @@ def get_gt_ops(config, state_predicates, action_predicates):
 class GroundTruthOperators:
     """Generic interface for ground truth operators.
     """
+
     def __init__(self, state_predicates, action_predicates):
         self._preds = {}
         for pred in state_predicates:
@@ -50,6 +54,7 @@ class GroundTruthOperators:
 class CoverOperators(GroundTruthOperators):
     """Ground truth operators for the cover environment.
     """
+
     def get_operators(self):
         IsBlock = self._preds["IsBlock"]
         IsTarget = self._preds["IsTarget"]
@@ -88,6 +93,7 @@ class CoverOperators(GroundTruthOperators):
 class BlocksOperators(GroundTruthOperators):
     """Ground truth operators for the blocks environment.
     """
+
     def get_operators(self):
         On = self._preds["On"]
         OnTable = self._preds["OnTable"]
@@ -156,6 +162,7 @@ class BlocksOperators(GroundTruthOperators):
 class PaintingOperators(GroundTruthOperators):
     """Ground truth operators for the painting environment.
     """
+
     def get_operators(self):
         OnTable = self._preds["OnTable"]
         Holding = self._preds["Holding"]
@@ -270,5 +277,60 @@ class PaintingOperators(GroundTruthOperators):
         paint_ndrs.append(NDR(action, preconditions, effect_probs, effects))
 
         all_ndrs[action] = NDRSet(action, paint_ndrs)
+
+        return ndrs_to_operators(all_ndrs)
+
+
+class RobosuiteOperators(GroundTruthOperators):
+    """Ground truth operators for the robosuite environment.
+    """
+
+    def get_operators(self):
+        On = self._preds["On"]
+        OnTable = self._preds["OnTable"]
+        Holding = self._preds["Holding"]
+        Clear = self._preds["Clear"]
+        HandEmpty = self._preds["HandEmpty"]
+        Pick = self._preds["Pick"]
+        PutOnTable = self._preds["PutOnTable"]
+
+        all_ndrs = {}
+
+        pick_ndrs = []
+        action = Pick("?block")
+
+        # Pick up from table
+        preconditions = [Clear("?block"), OnTable("?block"), HandEmpty()]
+        effects = [{Anti(Clear("?block")), Anti(OnTable("?block")),
+                    Anti(HandEmpty()), Holding("?block")},
+                   {NOISE_OUTCOME}]
+        effect_probs = [1.0, 0.0]
+        pick_ndrs.append(NDR(action, preconditions, effect_probs, effects))
+
+        # Pick up from block
+        preconditions = [HandEmpty(), On("?block", "?otherblock"),
+                         Clear("?block")]
+        effects = [{Anti(HandEmpty()), Anti(On("?block", "?otherblock")),
+                    Anti(Clear("?block")), Holding("?block"),
+                    Clear("?otherblock")},
+                   {NOISE_OUTCOME}]
+        effect_probs = [1.0, 0.0]
+        pick_ndrs.append(NDR(action, preconditions, effect_probs, effects))
+
+        all_ndrs[action] = pick_ndrs
+
+        put_on_table_ndrs = []
+        action = PutOnTable("?pose")
+
+        # Put on table
+        preconditions = [Holding("?block")]
+        effects = [{Anti(Holding("?block")), Clear("?block"), OnTable("?block"),
+                    HandEmpty()},
+                   {NOISE_OUTCOME}]
+        effect_probs = [1.0, 0.0]
+        put_on_table_ndrs.append(NDR(action, preconditions,
+                                     effect_probs, effects))
+
+        all_ndrs[action] = put_on_table_ndrs
 
         return ndrs_to_operators(all_ndrs)
