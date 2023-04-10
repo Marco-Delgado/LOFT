@@ -1,6 +1,5 @@
 __pycache__
 *pyc
 .DS_STORE
-*.mov
+.idea
 .gitignore
-.idea/*
