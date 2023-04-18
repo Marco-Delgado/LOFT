@@ -2,7 +2,7 @@ from envs.base_env import BaseEnv
 from envs.cover import Cover
 from envs.painting import Painting
 from envs.blocks import Blocks
-from envs.robosuite import Robosuite
+from envs.league import League
 
 
 def create_env(config):
@@ -10,6 +10,6 @@ def create_env(config):
         "cover": Cover,
         "painting": Painting,
         "blocks": Blocks,
-        "robosuite": Robosuite,
+        "league": League,
     }
     return name_to_cls[config.env](config)

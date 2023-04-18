@@ -232,3 +232,4 @@ class Operator(PDDLGymOperator):
 
 # Global world object for environments
 WORLD = Type("world")("world")
+ROBOT = Type("robot")("robot")

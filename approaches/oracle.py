@@ -26,7 +26,7 @@ def get_gt_ops(config, state_predicates, action_predicates):
         cls = CoverOperators(state_predicates, action_predicates)
     elif config.env == "blocks":
         cls = BlocksOperators(state_predicates, action_predicates)
-    elif config.env == "robosuite":
+    elif config.env == "league":
         cls = RobosuiteOperators(state_predicates, action_predicates)
     else:
         raise Exception(f"Unrecognized env: {config.env}")
